@@ -3,8 +3,9 @@ const Schema = mongoose.Schema;
 
 const WorkoutSchema = new Schema({
   //Define what workouts have (exercises NOT NECESSARILY DAYS)
-  days: {
-      type: Schema.Types.String
+  name: {
+    type: String,
+    unique: true
   },
   exercises: [
     {
