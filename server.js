@@ -29,6 +29,59 @@ mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/populatedb", { 
 //When button is clicked, get all exercises in workout and display them
 //Have field to enter name of workout, then once that is submitted bring up another form to fill out exercises for that workout
 
+//post route for new workout
+app.post("/api/workout", (req, res) => {
+    db.Workout.create({ name: req.body.name }).then(dbWorkout => {
+        console.log(dbWorkout)
+    }).catch(({ message }) => {
+        console.log(message);
+    })
+})
+//post route for new exercise
+app.post("/api/workout/exercise", ({ body }, res) => {
+    db.Exercise.create(body)
+        .then(({ _id }) => db.Workout.findOneAndUpdate({}, { $push: { exercises: _id } }, { new: true }))
+        .then(dbWorkout => {
+            res.json(dbWorkout);
+        })
+        .catch(err => {
+            res.json(err);
+        });
+});
+
+app.get("/workout", (req, res) => {
+    db.Workout.find({})
+        .then(dbWorkout => {
+            res.json(dbBook);
+        })
+        .catch(err => {
+            res.json(err);
+        });
+});
+
+app.get("/exercises", (req, res) => {
+    db.Exercise.find({})
+        .then(dbExercise => {
+            res.json(dbExercise);
+        })
+        .catch(err => {
+            res.json(err);
+        });
+});
+
+app.get("/workout/:id", (req, res) => {
+    db.Workout.find({
+        _id: mongojs.ObjectId(req.params.id)
+    })
+        .populate("exercises")
+        .then(dbWorkout => {
+            res.json(dbWorkout);
+        })
+        .catch(err => {
+            res.json(err);
+        });
+});
+
 app.listen(PORT, () => {
     console.log(`App running on port ${PORT}!`);
-  });
+});
