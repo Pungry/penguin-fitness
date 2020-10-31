@@ -1,6 +1,7 @@
 const express = require("express");
 const logger = require("morgan");
 const mongoose = require("mongoose");
+const mongojs = require("mongojs");
 
 const PORT = process.env.PORT || 3000;
 
@@ -15,7 +16,7 @@ app.use(express.json());
 
 app.use(express.static("public"));
 
-mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/populatedb", { useNewUrlParser: true });
+mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/workout", { useNewUrlParser: true });
 
 // When the user loads the page, they should be given the option to create a new workout or continue with their last workout.
 
@@ -31,16 +32,18 @@ mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/populatedb", { 
 
 //post route for new workout
 app.post("/api/workout", (req, res) => {
-    db.Workout.create({ name: req.body.name }).then(dbWorkout => {
+    console.log("connected", req.body);
+    db.Workout.create({name: req.body.name}).then(dbWorkout => {
         console.log(dbWorkout)
     }).catch(({ message }) => {
         console.log(message);
     })
 })
 //post route for new exercise
-app.post("/api/workout/exercise", ({ body }, res) => {
+app.post("/api/workout/:id", ({ body }, res) => {
+    console.log(body);
     db.Exercise.create(body)
-        .then(({ _id }) => db.Workout.findOneAndUpdate({}, { $push: { exercises: _id } }, { new: true }))
+        .then(({ _id }) => db.Workout.findOneAndUpdate({_id: mongojs.ObjectId(req.params.id)}, { $push: { exercises: _id } }, { new: true }))
         .then(dbWorkout => {
             res.json(dbWorkout);
         })
@@ -52,7 +55,7 @@ app.post("/api/workout/exercise", ({ body }, res) => {
 app.get("/workout", (req, res) => {
     db.Workout.find({})
         .then(dbWorkout => {
-            res.json(dbBook);
+            res.json(dbWorkout);
         })
         .catch(err => {
             res.json(err);
@@ -71,7 +74,7 @@ app.get("/exercises", (req, res) => {
 
 app.get("/workout/:id", (req, res) => {
     db.Workout.find({
-        _id: mongojs.ObjectId(req.params.id)
+        _id: req.params.id
     })
         .populate("exercises")
         .then(dbWorkout => {

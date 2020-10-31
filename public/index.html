@@ -1,17 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Penguin Fitness</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+        integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+        crossorigin="anonymous"></script>
     <style>
 
     </style>
 </head>
+
 <body>
     <!-- Text space for workout first -->
+    <form class="workout-form">
+        <div class="form-group">
+            <label>Workout:</label>
+            <input type="text" id="workout_name" name="Workout">
+        </div>
+        <button class="button" type="submit">Submit</button>
+    </form>
+    <br>
+    <div class="workoutArea">
+
+    </div>
+    <br>
+    <div class="exerciseList">
+
+    </div>
+    <br>
 </body>
 <script>
     // Expect to pass objects and to retrieve objects here
+    $(".workout-form").on("submit", function (event) {
+        event.preventDefault();
+        console.log("Worked")
+        var workout = $("#workout_name").val().trim();
+        console.log(workout);
+        var workoutObj = {name: workout};
+        console.log(workoutObj);
+        $.post("/api/workout", workoutObj).then(function (res) {
+            console.log(res);
+        })
+    })
+    
+    let workoutList = function(){
+        $.ajax({
+        url: "/workout",
+        method: "GET"}).then(function(response){
+            console.log(response);
+            for (let index = 0; index < response.length; index++) {
+                const element = response[index];
+                console.log(element.name)
+                //create button that has name as label, element._id as data-attr, and is attached to workoutArea div
+                var workoutButton = $("<button>");
+                workoutButton.addClass("workoutButton");
+                workoutButton.text(element.name);
+                workoutButton.data("attr", element._id);
+                workoutButton.attr("id", element._id);
+                $(".workoutArea").append(workoutButton)
+                $(".workoutArea").append($("<br>"))
+                console.log(workoutButton.data())
+            }
+        })
+    }
+
+    //click event that opens up a modal when a workoutButton w/class of workoutButton is clicked. lets user define an exercise in the modal that forces them to give a name, and optionally # of reps and description. once submitted, modal closes, makes a post request to /api/workout/:id using the data-attr of the clicked button as the id, and exercise list is populated with that exercise. if user wants to add another exercise, they need to go through modal again.
+    $(document).on("click", ".workoutButton", function(event){
+        event.preventDefault();
+        console.log("Workout Button clicked");
+        console.log($(".workoutButton").data());
+        let id = $(".workoutButton").data()
+        let exerciseName = window.prompt("Name of exercise?");
+        console.log(exerciseName);
+        let exerciseReps = parseInt(window.prompt("Number of reps for exercise?"));
+        let exerciseDesc = window.prompt("Add a description of the exercise if needed.");
+        let ajaxURL = "/api/workout/" + id;
+        let newExercise = {name: exerciseName, reps: exerciseReps, description: exerciseDesc};
+        console.log(newExercise);
+        $.post(ajaxURL, newExercise).then(function(response){
+            console.log(response);
+            let newAjax = "workout/" + id;
+            $.get(newAjax).then(function(response2){
+                for (let index = 0; index < response2.length; index++) {
+                    const element = response2[index];
+                    let newEx = $("<p>");
+                    newEx.text("Name: ", element.name, "Num reps: ", element.reps, "Description: ", element.description);
+                    $(".exerciseList").append(newEx);
+                    $(".exerciseList").append($("<br>"));
+                }                
+            })
+        })
+    })
+
+    workoutList();
 </script>
+
 </html>
