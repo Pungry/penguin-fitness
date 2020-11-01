@@ -31,6 +31,9 @@
 
     </div>
     <br>
+    <p>
+        Exercise List:
+    </p>
     <div class="exerciseList">
 
     </div>
@@ -75,17 +78,21 @@
     $(document).on("click", ".workoutButton", function(event){
         event.preventDefault();
         console.log("Workout Button clicked");
-        console.log($(".workoutButton").data());
-        let id = $(".workoutButton").data()
+        console.log("this.data: ", $(this).data());
+        let id = $(this).data().attr;
+        console.log("id: ", id);
         let exerciseName = window.prompt("Name of exercise?");
         console.log(exerciseName);
         let exerciseReps = parseInt(window.prompt("Number of reps for exercise?"));
         let exerciseDesc = window.prompt("Add a description of the exercise if needed.");
         let ajaxURL = "/api/workout/" + id;
         let newExercise = {name: exerciseName, reps: exerciseReps, description: exerciseDesc};
-        console.log(newExercise);
+        console.log("newExercise: ", newExercise);
+        console.log("ajaxURL", ajaxURL);
+        //this ajax call is not working
         $.post(ajaxURL, newExercise).then(function(response){
-            console.log(response);
+            console.log("you posted");
+            console.log("newExercise response: ", response);
             let newAjax = "workout/" + id;
             $.get(newAjax).then(function(response2){
                 for (let index = 0; index < response2.length; index++) {

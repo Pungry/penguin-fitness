@@ -42,6 +42,7 @@ app.post("/api/workout", (req, res) => {
 //post route for new exercise
 app.post("/api/workout/:id", ({ body }, res) => {
     console.log(body);
+    //we get to this point in the route, but the create is written wrong
     db.Exercise.create(body)
         .then(({ _id }) => db.Workout.findOneAndUpdate({_id: mongojs.ObjectId(req.params.id)}, { $push: { exercises: _id } }, { new: true }))
         .then(dbWorkout => {
