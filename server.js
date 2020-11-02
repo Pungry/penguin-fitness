@@ -3,14 +3,9 @@ const logger = require("morgan");
 const mongoose = require("mongoose");
 const mongojs = require("mongojs");
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 const db = require("./models");
-
-// const databaseUrl = "workout";
-// const collections = ["workouts", "exercises"];
-
-// const db = mongojs(databaseUrl, collections);
 
 const app = express();
 
@@ -21,7 +16,15 @@ app.use(express.json());
 
 app.use(express.static("public"));
 
-mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/workout", { useNewUrlParser: true });
+mongoose.connect(
+    process.env.MONGODB_URI || 'mongodb://localhost/deep-thoughts',
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useCreateIndex: true,
+      useFindAndModify: false
+    }
+  );
 
 //post route for new workout
 app.post("/api/workout", (req, res) => {
@@ -36,7 +39,6 @@ app.post("/api/workout", (req, res) => {
 app.post("/api/workout/:id", (req, res) => {
     console.log(req.body);
     console.log("req.params.id: ", req.params.id);
-    //we get to this point in the route, but the create is written wrong; not sure how to tie exercise to workout
     db.Exercise.create(req.body)
         .then(({ _id }) => db.Workout.findOneAndUpdate({_id: mongojs.ObjectId(req.params.id)}, { $push: { exercises: _id } }, { new: true }))
         .then(dbWorkout => {

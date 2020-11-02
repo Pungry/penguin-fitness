@@ -15,8 +15,12 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <style>
+        .workout-form{
+            border-style: solid;
+        }
         .exercise-form {
             display: none;
+            border-style: solid;
         }
     </style>
 </head>
@@ -25,8 +29,9 @@
     <div class="container">
         <!-- Text space for workout first -->
         <div class="row">
-            <div class="col-sm-6">
+            <div class="col-sm-4">
                 <form class="workout-form">
+                    <h1>Write Workout Name Here</h1>
                     <div class="form-group">
                         <label>Workout:</label>
                         <input type="text" id="workout_name" name="Workout">
@@ -34,19 +39,14 @@
                     <button class="button" type="submit">Submit</button>
                 </form>
             </div>
-        </div>
-        <br>
-        <div class="row">
-            <div class="col-sm-6">
+            <div class="col-sm-4">
                 <div class="workoutArea">
-
+                    <h1>Workouts</h1>
                 </div>
             </div>
-        </div>
-        <br>
-        <div class="row">
-            <div class="col-sm-6">
+            <div class="col-sm-4">
                 <form class="exercise-form">
+                    <h1>Input Exercise Name and Info Here</h1>
                     <div class="form-group">
                         <label>Exercise Name:</label>
                         <input type="text" id="exercise_name" name="Exercise">
@@ -63,13 +63,12 @@
                 </form>
             </div>
             <br>
-            <p>
+            <h3>
                 Exercise List:
-            </p>
+            </h3>
             <div class="exerciseList">
 
             </div>
-            <br>
         </div>
     </div>
 </body>
@@ -79,25 +78,19 @@
     // Expect to pass objects and to retrieve objects here
     $(".workout-form").on("submit", function (event) {
         event.preventDefault();
-        console.log("Worked")
         var workout = $("#workout_name").val().trim();
-        console.log(workout);
         var workoutObj = { name: workout };
-        console.log(workoutObj);
         $.post("/api/workout", workoutObj).then(function (res) {
-            console.log(res);
         })
     })
-
+    // finds all the workouts in the database, then returns them all as buttons
     let workoutList = function () {
         $.ajax({
             url: "/workout",
             method: "GET"
         }).then(function (response) {
-            console.log(response);
             for (let index = 0; index < response.length; index++) {
                 const element = response[index];
-                console.log(element.name)
                 //create button that has name as label, element._id as data-attr, and is attached to workoutArea div
                 var workoutButton = $("<button>");
                 workoutButton.addClass("workoutButton");
@@ -107,44 +100,31 @@
                 workoutButton.data("name", element.name);
                 $(".workoutArea").append(workoutButton)
                 $(".workoutArea").append($("<br>"))
-                console.log(workoutButton.data())
             }
         })
     }
 
-    //click event that opens up a modal when a workoutButton w/class of workoutButton is clicked. lets user define an exercise in the modal that forces them to give a name, and optionally # of reps and description. once submitted, modal closes, makes a post request to /api/workout/:id using the data-attr of the clicked button as the id, and exercise list is populated with that exercise. if user wants to add another exercise, they need to go through modal again.
+    //click event that opens up a form when a workoutButton w/class of workoutButton is clicked. lets user define an exercise in the form that forces them to give a name, and optionally # of reps and description. once submitted, it makes a post request to /api/workout/:id using the data-attr of the clicked button as the id, and exercise list is populated with that exercise. if user wants to add another exercise, they need to add another workout here.
     $(document).on("click", ".workoutButton", function (event) {
         event.preventDefault();
-        console.log("Workout Button clicked");
-        console.log("this.data: ", $(this).data());
         let workoutID = $(this).data().attr;
         let workoutName = $(this).data().name;
         exerciseList(workoutID);
-        console.log("workoutID: ", workoutID);
-        console.log("workoutName: ", workoutName)
         //after this, reveal the middle column with the exercise stuff; need this in here so the workoutID and name are not forgotten so the post route happens to the proper workout!!!
         $(".exercise-form").show();
         $(".exercise-form").on("submit", function (event) {
             event.preventDefault();
-            console.log("Worked")
             var exerciseName = $("#exercise_name").val().trim();
-            console.log("exerciseName: ", exerciseName);
             var num_reps = $("#num_reps").val();
             var exercise_desc = $("#exercise_desc").val().trim();
-            console.log("num_reps: ", num_reps)
-            console.log("exercise_decs: ", exercise_desc)
             var exerciseObj = {
                 name: exerciseName,
                 reps: num_reps,
                 description: exercise_desc
             };
-            console.log("exerciseObj: ", exerciseObj);
-            console.log("workoutName: ", workoutName)
-            console.log("workoutID: ", workoutID)
             let ajaxURL = "/api/workout/" + workoutID;
             //just post to /api/workout/:id, and then make/call a new function 
             $.post(ajaxURL, exerciseObj).then(function (res) {
-                console.log(res);
                 //want to call exerciseList with the name of the workout here so that it starts getting populated
                 exerciseList(res._id);
             })
@@ -152,10 +132,7 @@
     })
 
     let exerciseList = function(workoutID) {
-        console.log("Write the exercise list function to make a get route to /workout/:id using the workoutID parameter");
-        console.log("exerciseList workoutID: ", workoutID);
         let ajaxURL = "/workout/" + workoutID;
-        console.log("ajaxURL: ", ajaxURL)
         $.ajax({
             url: ajaxURL,
             method: "GET"
@@ -164,11 +141,15 @@
                 const workout = response[index].exercises;
                 for (let i = 0; i < workout.length; i++) {
                     const exercise = workout[i];
-                    console.log("Exercise: ", exercise)
-                    var exerciseText = $("<p>");
                     $(".exerciseList").append($("<br>"))
-                    exerciseText.text(`Name: ${exercise.name} Reps: ${exercise.reps} Description: ${exercise.description}`);
-                    $(".exerciseList").append(exerciseText)
+                    var exerciseName = `Name: ${exercise.name}` 
+                    $(".exerciseList").append(exerciseName)
+                    $(".exerciseList").append($("<br>"))
+                    var exerciseReps = `Reps: ${exercise.reps}` 
+                    $(".exerciseList").append(exerciseReps)
+                    $(".exerciseList").append($("<br>"))
+                    var exerciseDesc = `Description: ${exercise.description}` 
+                    $(".exerciseList").append(exerciseDesc)
                 }
             }
         })
