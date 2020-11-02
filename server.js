@@ -7,6 +7,11 @@ const PORT = process.env.PORT || 3000;
 
 const db = require("./models");
 
+// const databaseUrl = "workout";
+// const collections = ["workouts", "exercises"];
+
+// const db = mongojs(databaseUrl, collections);
+
 const app = express();
 
 app.use(logger("dev"));
@@ -18,18 +23,6 @@ app.use(express.static("public"));
 
 mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/workout", { useNewUrlParser: true });
 
-// When the user loads the page, they should be given the option to create a new workout or continue with their last workout.
-
-// The user should be able to:
-
-//   * Add exercises to a previous workout plan.
-
-//   * Add new exercises to a new workout plan.
-
-//On load, get all workout names; display each workout as a button
-//When button is clicked, get all exercises in workout and display them
-//Have field to enter name of workout, then once that is submitted bring up another form to fill out exercises for that workout
-
 //post route for new workout
 app.post("/api/workout", (req, res) => {
     console.log("connected", req.body);
@@ -40,10 +33,11 @@ app.post("/api/workout", (req, res) => {
     })
 })
 //post route for new exercise
-app.post("/api/workout/:id", ({ body }, res) => {
-    console.log(body);
-    //we get to this point in the route, but the create is written wrong
-    db.Exercise.create(body)
+app.post("/api/workout/:id", (req, res) => {
+    console.log(req.body);
+    console.log("req.params.id: ", req.params.id);
+    //we get to this point in the route, but the create is written wrong; not sure how to tie exercise to workout
+    db.Exercise.create(req.body)
         .then(({ _id }) => db.Workout.findOneAndUpdate({_id: mongojs.ObjectId(req.params.id)}, { $push: { exercises: _id } }, { new: true }))
         .then(dbWorkout => {
             res.json(dbWorkout);

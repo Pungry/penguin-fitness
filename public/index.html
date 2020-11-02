@@ -145,6 +145,8 @@
             //just post to /api/workout/:id, and then make/call a new function 
             $.post(ajaxURL, exerciseObj).then(function (res) {
                 console.log(res);
+                //want to call exerciseList with the name of the workout here so that it starts getting populated
+                exerciseList(res._id);
             })
         })
     })
@@ -159,13 +161,15 @@
             method: "GET"
         }).then(function (response) {
             for (let index = 0; index < response.length; index++) {
-                const element = response[index];
-                console.log(element.name)
-                //create and append text of the exercises to .exerciseList div
-                var exerciseText = $("<p>");
-                exerciseText.text("Name: ", element.name, "Reps: ", element.reps, "Description: ", element.description);
-                $("exerciseList").append(exerciseText)
-                $(".exerciseList").append($("<br>"))
+                const workout = response[index].exercises;
+                for (let i = 0; i < workout.length; i++) {
+                    const exercise = workout[i];
+                    console.log("Exercise: ", exercise)
+                    var exerciseText = $("<p>");
+                    $(".exerciseList").append($("<br>"))
+                    exerciseText.text(`Name: ${exercise.name} Reps: ${exercise.reps} Description: ${exercise.description}`);
+                    $(".exerciseList").append(exerciseText)
+                }
             }
         })
     }
